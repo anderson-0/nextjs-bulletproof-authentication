@@ -1,6 +1,8 @@
-import { useRouter } from 'next/router';
-import { setCookie, parseCookies } from 'nookies';
-import { createContext, useEffect, useState } from 'react';
+import Router from 'next/router';
+import {
+  createContext, ReactNode, useEffect, useState,
+} from 'react';
+import { setCookie, parseCookies, destroyCookie } from 'nookies';
 import { api } from '../services/api';
 
 type User = {
@@ -21,28 +23,37 @@ type AuthContextData = {
 }
 
 type AuthProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 }
+
+export function signOut() {
+  destroyCookie(undefined, 'nextauth.token');
+  destroyCookie(undefined, 'nextauth.refreshToken');
+
+  Router.push('/');
+}
+
 export const AuthContext = createContext({} as AuthContextData);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User>();
-  const router = useRouter();
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    const {
-      '<my_app_name_token>': token,
-      '<my_app_name_refresh_token>': refreshToken,
-    } = parseCookies();
+    const { 'nextauth.token': token } = parseCookies();
 
     // when we first open the application, if there is a token, let's use it to
     // retrieve the user's info and update the state
     if (token) {
-      api.get('/me').then((response) => {
-        const { email, permissions, roles } = response.data;
-        setUser({ email, permissions, roles });
-      });
+      api.get('/me')
+        .then((response) => {
+          const { email, permissions, roles } = response.data;
+          setUser({ email, permissions, roles });
+        }).catch((error) => {
+        // An error not related to the refresh token happened
+          console.log(error);
+          signOut();
+        });
     }
   }, []);
 
@@ -62,13 +73,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } = response.data;
 
       // Save JWT token in cookie
-      setCookie(undefined, '<my_app_name_token>', token, {
+      setCookie(undefined, 'nextauth.token', token, {
         maxAge: 60 * 60 * 24 * 30, // 30 days,
         path: '/',
       });
 
       // Save refresh token in cookie
-      setCookie(undefined, '<my_app_name_refresh_token>', refreshToken, {
+      setCookie(undefined, 'nextauth.refreshToken', refreshToken, {
         maxAge: 60 * 60 * 24 * 30, // 30 days,
         path: '/',
       });
@@ -82,10 +93,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Update the default token being used after we authenticate
       // because we just got a new token and refresh token
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Obs: it is accusing an error on HeaderDefaults but it is not. Should be a bug on axios
+      api.defaults.headers['Authorization'] = `Bearer ${token}`;
 
       // After authentication, send the user to the dashboard
-      router.push('/dashboard');
+      Router.push('/dashboard');
     } catch (error) {
       // TODO: handle sign in error
       console.log(error);
