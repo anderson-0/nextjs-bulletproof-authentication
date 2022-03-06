@@ -35,23 +35,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password,
       });
-      console.log(response.data)
-      
+
       const { permissions, roles } = response.data;
-      setUser({ email, permissions, roles });
+
+      setUser({
+        email,
+        permissions,
+        roles,
+      });
 
       router.push('/dashboard');
-
     } catch (error) {
       console.log(error);
     }
   }
 
   return (
-    <AuthContext.Provider value={{ signIn, isAuthenticated, user}}>
+    <AuthContext.Provider value={{ signIn, isAuthenticated, user }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export const AuthContext = createContext({} as AuthContextData);
