@@ -21,6 +21,9 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
+    'import/prefer-default-export': 'off',
+    '@typescript-eslint/indent': ['error', 2],
+    'dot-notation': 'off',
     'no-console': 'off',
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx', '.tsx'] }],
@@ -32,6 +35,12 @@ module.exports = {
         jsx: 'never',
         ts: 'never',
         tsx: 'never',
+      },
+    ],
+    'react/function-component-definition': [
+      2,
+      {
+        namedComponents: 'arrow-function',
       },
     ],
   },
