@@ -31,7 +31,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    const { '<my_app_name_token>': token, '<my_app_name_refresh_token>': refreshToken } = parseCookies();
+    const {
+      '<my_app_name_token>': token,
+      '<my_app_name_refresh_token>': refreshToken,
+    } = parseCookies();
+
+    // when we first open the application, if there is a token, let's use it to
+    // retrieve the user's info and update the state
     if (token) {
       api.get('/me').then((response) => {
         const { email, permissions, roles } = response.data;
@@ -42,12 +48,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   async function signIn({ email, password }: SignInCredentials) {
     console.log(email, password);
+
     try {
+      // Call the api to sign in the user
       const response = await api.post('sessions', {
         email,
         password,
       });
 
+      // Extract the token, refresh token, roles and permissions from the response
       const {
         token, refreshToken, permissions, roles,
       } = response.data;
@@ -64,16 +73,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         path: '/',
       });
 
+      // Update the state with the user's info
       setUser({
         email,
         permissions,
         roles,
       });
 
+      // Update the default token being used after we authenticate
+      // because we just got a new token and refresh token
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
+      // After authentication, send the user to the dashboard
       router.push('/dashboard');
     } catch (error) {
+      // TODO: handle sign in error
       console.log(error);
     }
   }
