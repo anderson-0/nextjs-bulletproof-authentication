@@ -39,7 +39,7 @@ module.exports = {
       },
     ],
     'react/function-component-definition': [
-      2,
+      0,
       {
         namedComponents: 'arrow-function',
       },
