@@ -26,6 +26,7 @@ module.exports = {
     'dot-notation': 'off',
     'no-console': 'off',
     'react/jsx-props-no-spreading': 'off',
+    'react/jsx-no-constructed-context-values': 'off',
     'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx', '.tsx'] }],
     'import/extensions': [
       'error',
